@@ -1,22 +1,10 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { DynamoDB } from 'aws-sdk';
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 
-const dynamodb = new DynamoDB.DocumentClient();
+const client = new DynamoDBClient({});
+const dynamodb = DynamoDBDocumentClient.from(client);
 
-interface Item {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: string;
-}
-
-interface GetItemsResponse {
-  items: Item[];
-  count: number;
-  scannedCount?: number;
-}
-
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+exports.handler = async (event) => {
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
@@ -25,14 +13,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   };
 
   try {
-    const scanParams: DynamoDB.DocumentClient.ScanInput = {
-      TableName: process.env.TABLE_NAME!,
+    const scanParams = {
+      TableName: process.env.TABLE_NAME,
     };
 
-    const result = await dynamodb.scan(scanParams).promise();
+    const result = await dynamodb.send(new ScanCommand(scanParams));
 
-    const response: GetItemsResponse = {
-      items: (result.Items as Item[]) || [],
+    const response = {
+      items: result.Items || [],
       count: result.Count || 0,
       ...(result.ScannedCount && { scannedCount: result.ScannedCount })
     };
@@ -55,7 +43,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       headers,
       body: JSON.stringify({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error.message || 'Unknown error'
       })
     };
   }

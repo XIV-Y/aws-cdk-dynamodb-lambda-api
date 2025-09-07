@@ -1,22 +1,11 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { v4 as uuidv4 } from 'uuid';
-import { DynamoDB } from 'aws-sdk';
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const { v4: uuidv4 } = require('uuid');
 
-const dynamodb = new DynamoDB.DocumentClient();
+const client = new DynamoDBClient({});
+const dynamodb = DynamoDBDocumentClient.from(client);
 
-interface CreateItemRequest {
-  name: string;
-  description: string;
-}
-
-interface Item {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: string;
-}
-
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+exports.handler = async (event) => {
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
@@ -35,7 +24,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       };
     }
 
-    const requestBody: CreateItemRequest = JSON.parse(event.body);
+    const requestBody = JSON.parse(event.body);
     
     if (!requestBody.name || !requestBody.description) {
       return {
@@ -47,17 +36,17 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       };
     }
 
-    const newItem: Item = {
+    const newItem = {
       id: uuidv4(),
       name: requestBody.name.trim(),
       description: requestBody.description.trim(),
       createdAt: new Date().toISOString()
     };
 
-    await dynamodb.put({
-      TableName: process.env.TABLE_NAME!,
+    await dynamodb.send(new PutCommand({
+      TableName: process.env.TABLE_NAME,
       Item: newItem
-    }).promise();
+    }));
 
     return {
       statusCode: 201,
@@ -76,7 +65,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       headers,
       body: JSON.stringify({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error.message || 'Unknown error'
       })
     };
   }
