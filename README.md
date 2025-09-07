@@ -1,14 +1,31 @@
-# Welcome to your CDK TypeScript project
+AWS CDKを使用してLambda関数とAPI Gatewayをデプロイするためのテンプレートプロジェクト。Infrastructure as Codeによるサーバーレスアプリケーションの構築。
 
-This is a blank project for CDK development with TypeScript.
+## 🛠️ 環境構築
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+### 1. リポジトリのクローン
+```bash
+git clone <repository-url>
+cd aws-cdk-lambda-api-template
+```
 
-## Useful commands
+### 2. 依存関係のインストール
+```bash
+npm install
+```
 
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
+## 🚀 デプロイ手順
+
+### 1. TypeScriptコンパイル
+```bash
+npm run build
+```
+
+### 2. 差分の確認
+```bash
+npx cdk diff
+```
+
+### 3. デプロイ実行
+```bash
+npx cdk deploy
+```
